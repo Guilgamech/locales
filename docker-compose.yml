@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+  web:
+    image: ${APP_IMAGE}
+    environment:
+      DEBUG: "${DEBUG}"
+      PYTHONUNBUFFERED: "${PYTHONUNBUFFERED}"
+      DATABASE_URL: "${DATABASE_URL}"
+      SECRET_KEY: "${SECRET_KEY}"
+      AD_DNS_NAME: "${AD_DNS_NAME}"
+      AD_LDAP_PORT: "${AD_LDAP_PORT}"
+      LDAP_AUTH_USE_TLS: "${LDAP_AUTH_USE_TLS}"
+      LDAP_AUTH_SEARCH_BASE: "${LDAP_AUTH_SEARCH_BASE}"
+      LDAP_AUTH_ACTIVE_DIRECTORY_DOMAIN: "${LDAP_AUTH_ACTIVE_DIRECTORY_DOMAIN}"
+      EMAIL_BACKEND: "${EMAIL_BACKEND}"
+      EMAIL_HOST: "${EMAIL_HOST}"
+      EMAIL_PORT: "${EMAIL_PORT}"
+      EMAIL_HOST_USER: "${EMAIL_HOST_USER}"
+      EMAIL_HOST_PASSWORD: "${EMAIL_HOST_PASSWORD}"
+      EMAIL_FROM: "${EMAIL_FROM}"
+      EMAIL_USE_TLS: "${EMAIL_USE_TLS}"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.${APP_NAME}-web.loadbalancer.server.port=8000"
+        - "traefik.http.routers.${APP_NAME}-web.rule=Host(`${APP_HOST}`)"
+        - "traefik.http.routers.${APP_NAME}-web.entrypoints=web"
+        - "traefik.http.routers.${APP_NAME}-web.middlewares=${APP_NAME}-web"
+        - "traefik.http.routers.${APP_NAME}-web-secure.rule=Host(`${APP_HOST}`)"
+        - "traefik.http.routers.${APP_NAME}-web-secure.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME}-web-secure.tls=true"
+        - "traefik.http.middlewares.${APP_NAME}-web.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.${APP_NAME}-web.redirectscheme.permanent=true"
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - media:/usr/src/app/media
+    networks:
+      - traefik-public
+
+volumes:
+  media: {}
+
+networks:
+  traefik-public:
+    external: true

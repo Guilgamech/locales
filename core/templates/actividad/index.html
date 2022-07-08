@@ -1,0 +1,50 @@
+{% extends 'index_base.html' %}
+
+{% block title %}Listado de las actividades{% endblock %}
+
+{% block header %} actividad{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span> actividad </span></li>
+{% endblock %}
+
+{% block thead %}
+    <tr>
+        {% if actividads is not null %}
+            <th><input type="checkbox" id="selectall" name="selectall" onclick="seleccionarTodo();"></th>
+        {% endif %}
+        <th>Nombre</th>
+        <th>Fecha de inicio</th>
+        <th>Hora de inicio</th>
+        <th>Fecha fin</th>
+        <th>Hora fin</th>
+        <th>Local</th>
+        <th>Tipo actividad</th>
+        <th>Acciones</th>
+    </tr>
+{% endblock %}
+
+{% block tbody %}
+
+        {% for actividad in actividads %}
+            <tr>
+                <td><input type="checkbox" id="select" class="select" name="select[]" value="{{ actividad.id }}"
+                           onclick="activarDesactivar();"></td>
+                <td>{{ actividad.nombre }}</td>
+                <td>{{ actividad.fechaInicio|date:'d/m/Y' }}</td>
+                <td>{{ actividad.horaInicio }}</td>
+                <td>{{ actividad.fechaFin|date:'d/m/Y' }}</td>
+                <td>{{ actividad.horaFin }}</td>
+                <td>{{ actividad.local }}</td>
+                <td>{{ actividad.tipoActividad }}</td>
+                <td>
+                    <a href="{% url 'actividad_show' actividad.id %} "><i class="fa fa-info-circle"></i></a>
+                    <a href="{% url 'actividad_edit' actividad.id %}"><i class="fa fa-pencil-square"></i></a>
+                </td>
+            </tr>
+        {% endfor %}
+{% endblock %}
+{% block nuevo %}{% url 'actividad_new' %}{% endblock %}
+{% block eliminar %}{% url 'actividad_delete_all' %}{% endblock %}
+
+

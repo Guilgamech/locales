@@ -1,0 +1,87 @@
+{% extends 'show_base.html' %}
+{% load static %}
+{% block header %} Actividad {% endblock %}
+{% block stylesheets %}
+    <style>
+        .widget-twitter-profile .profile-quote {
+            border-radius: 0 0 5px 5px;
+            padding: 15px 10px 15px 20px;
+
+        .widget-twitter-profile .profile-quote blockquote {
+            padding: 0;
+            margin: 0;
+            border: 0;
+        }
+
+        .widget-twitter-profile .profile-quote blockquote p {
+            position: relative;
+            font-style: italic;
+            font-size: 18px;
+            font-size: 1.8rem;
+            line-height: 1.6;
+            padding: 15px 0;
+            margin: 0 0 10px;
+            font-family: Georgia, serif;
+        }
+
+        .widget-twitter-profile .profile-quote blockquote p:before {
+            position: absolute;
+            top: 0;
+            left: -45px;
+            content: '\201C';
+            font-size: 80px;
+            font-size: 8rem;
+            line-height: 1;
+            font-family: Georgia, serif;
+            font-style: normal;
+        }
+
+        .widget-twitter-profile .profile-quote .quote-footer {
+            border-top: 1px solid #e6e6e6;
+            padding: 5px 0;
+            text-align: right;
+            color: white;
+        }
+
+        .widget-twitter-profile .profile-quote .quote-footer a {
+            color: white;
+        }
+
+        }
+    </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span><a href="{% url 'actividad_index' %}"> Actividad </a></span></li>
+    <li><span> Mostrar información de la actividad </span></li>
+{% endblock %}
+
+{% block panel %}
+    Mostrar información de la actividad
+{% endblock %}
+
+{% block contenido %}
+    {% include 'actividad/_delete_form.html' %}
+    <section class="panel-group mb-xlg">
+        <div class="widget-twitter-profile">
+            <div class="profile-quote">
+                <p>Nombre: {{ actividad.nombre }}</p>
+                <p>Local: {{ actividad.local }}</p>
+                <p>Tipo actividad: {{ actividad.tipoActividad }}</p>
+
+                <div class="quote-footer">
+                    <span class="datetime">{{ actividad.fechaInicio|date:'d/m/Y' }} a {{ actividad.horaInicio }} - {{ actividad.fechaFin|date:'d/m/Y' }} a {{ actividad.horaFin }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="row pull-right">
+        <a class="mb-xs mt-xs mr-xs btn btn-primary" href="{% url 'actividad_index' %}"><i class='fa fa-list-ol'></i>
+            Listar</a>
+            <a class="mt-xs mr-xs btn btn-primary" href="{% url 'actividad_edit' actividad.id %}"> <i
+                    class='fa fa-edit'></i> Editar</a>
+            <a class="mt-xs mr-xs btn btn-danger modal-basic" href="#modalHeaderColorWarning"><i
+                    class="fa fa-trash-o"></i>
+                Borrar</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{#{% load widget_tweaks %}#}
+<form method="post">
+    {% csrf_token %}
+     <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+                {{ form.nombre.label_tag }}
+                {{ form.nombre }}
+                {{ form.nombre.errors }}
+            </div>
+        </div>
+          <div class="col-md-6">
+            <div class="form-group">
+                {{ form.apellidos.label_tag }}
+                {{ form.apellidos }}
+                {{ form.apellidos.errors }}
+            </div>
+        </div>
+     </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form.telefono.label_tag }}
+                <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-phone"></i>
+                        </span>
+                    {{ form.telefono }}
+                </div>
+
+                {{ form.telefono.errors }}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form.telefonoFijo.label_tag }}
+                <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-phone"></i>
+                        </span>
+                    {{ form.telefonoFijo }}
+                </div>
+
+                {{ form.telefonoFijo.errors }}
+            </div>
+        </div>
+        </div>
+      <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form.area.label_tag }}
+                {{ form.area }}
+                {{ form.area.errors }}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form.tipoUsuario.label_tag }}
+                {{ form.tipoUsuario }}
+                {{ form.tipoUsuario.errors }}
+            </div>
+        </div>
+    </div>
+    <div class="row pull-right">
+        <button id="guardar" type="submit" class="mt-xs mr-xs btn btn-primary"><i class="fa fa-save"></i> Guardar
+        </button>
+        <a id="borrar" class="mt-xs mr-xs modal-basic btn btn-danger" href="#modalHeaderColorWarning"><i
+                class="fa fa-trash-o"></i> Borrar</a>
+    </div>
+</form>
+
+

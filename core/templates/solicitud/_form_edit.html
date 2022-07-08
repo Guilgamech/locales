@@ -1,0 +1,199 @@
+{% load widget_tweaks %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                {{ form.local.label_tag }}
+                {{ form.local }}
+                {{ form.local.errors }}
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                {{ form.fechaInicio.label_tag }}
+                {{ form.fechaInicio }}
+                {{ form.fechaInicio.errors }}
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                {{ form.horaInicio.label_tag }}
+                {{ form.horaInicio }}
+                {{ form.horaInicio.errors }}
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                {{ form.fechaFin.label_tag }}
+                {{ form.fechaFin }}
+                {{ form.fechaFin.errors }}
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                {{ form.horaFin.label_tag }}
+                {{ form.horaFin }}
+                {{ form.horaFin.errors }}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <div class="switch switch-sm switch-primary">
+                    {{ form.diaCompleto.label_tag }}
+                    {{ form.diaCompleto }}
+                    {{ form.diaCompleto.errors }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                {{ form.tipoActividad.label_tag }}
+                {{ form.tipoActividad }}
+                {{ form.tipoActividad.errors }}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                {{ form.nombre.label_tag }}
+                {{ form.nombre }}
+                {{ form.nombre.errors }}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                {{ form.cantidadParticipante.label_tag }}
+                <div data-plugin-spinner data-plugin-options='{ "value":0, "min": 1, "max":100000 }'>
+                    <div class="input-group" style="width:150px;">
+                        {{ form.cantidadParticipante }}
+                        {#                        {{ form.cantidadParticipante | attr:"readonly:readonly" | add_class:"spinner-input form-control" }}#}
+                        <div class="spinner-buttons input-group-btn">
+                            <button type="button" class="btn btn-default spinner-up">
+                                <i class="fa fa-angle-up"></i>
+                            </button>
+                            <button type="button" class="btn btn-default spinner-down">
+                                <i class="fa fa-angle-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {{ form.cantidadParticipante.errors }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ form.descripcion.label_tag }}
+                {{ form.descripcion }}
+                {{ form.descripcion.errors }}
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ form.observacion.label_tag }}
+                {{ form.observacion }}
+                {{ form.observacion.errors }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <hr>
+        <div class="col-md-12">
+            <section class="panel panel-primary">
+                <header class="panel-heading">
+                    <h2 class="panel-title">Aseguramientos</h2>
+                </header>
+                <div class="panel-body">
+                    <div id="modalHeaderColorWarning" class="modal-block modal-header-color modal-block-warning mfp-hide">
+                        <section class="panel">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Alerta!</h2>
+                            </header>
+                            <div class="panel-body">
+                                <div class="modal-wrapper">
+                                    <div class="modal-icon">
+                                        <i class="fa fa-warning"></i>
+                                    </div>
+                                    <div class="modal-text">
+                                        <h4>Alerta</h4>
+                                        <p>¿Esta seguro que desea eliminar estos datos?</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <footer class="panel-footer">
+                                <div class="row">
+                                    <div class="col-md-12 text-right">
+                                        <button id="confirmar" class="btn btn-warning">Confirmar</button>
+                                        <button class="btn btn-default modal-dismiss">Cancelar</button>
+                                    </div>
+                                </div>
+                            </footer>
+                        </section>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="btn-group">
+                            <a href="{% url 'aseguramiento_solicitud_new' solicitud.id %}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
+                            <a id="eliminar" class="modal-basic btn btn-danger" href="#modalHeaderColorWarning" disabled><i class="fa fa-trash-o"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <table class="table table-bordered table-striped mb-none" id="datatableAseguramiento">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>Aseguramiento</th>
+                                <th>Descripción</th>
+                                <th>Observación</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for aseguramiento in aseguramientos %}
+                                <tr>
+                                    <td style="padding-top: 0px"><input type="checkbox" id="select" class="select" name="select[]" value="{{ aseguramiento.id }}" onclick="activarDesactivar();"></td>
+                                    <td>{{ aseguramiento.aseguramiento }}</td>
+                                    <td>{{ aseguramiento.descripcion }}</td>
+                                    <td>{{ aseguramiento.observacion }}</td>
+                                    <td>
+                                        <a href="{% url 'aseguramiento_solicitud_edit' aseguramiento.id %}"><i class="fa fa-pencil-square"></i></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <div class="row pull-right">
+        <button id="actualizar" class="mt-xs mr-xs btn btn-primary" style="display: none"><i class="fa fa-refresh"></i>
+            Actualizar
+        </button>
+        <button id="guardar" type="submit" class="mt-xs mr-xs btn btn-primary"
+                onmouseover="accion('{% url 'solicitud_new' %}')" style="display: none"><i
+                class="fa fa-save"></i> Guardar
+        </button>
+        <button id="guardar_y_continuar" type="submit" class="mt-xs mr-xs btn btn-primary"
+                onmouseover="accion('{% url 'solicitud_create_and_new' %}')" style="display: none"><i
+                class="fa fa-check-square-o"></i>Guardar y continuar
+        </button>
+        <a class="mt-xs mr-xs btn btn-primary" href="{% url 'solicitud_index' %}"><i
+                class="fa fa-list-ol"></i> Listar</a>
+        <a id="borrar" class="mt-xs mr-xs modal-basic btn btn-danger" href="#modalHeaderColorWarning"
+           style="display: none"><i class="fa fa-trash-o"></i> Borrar</a>
+    </div>
+    <div id="contenedor">
+        <input type="hidden" id="elementos" name="elementos" value="0"/>
+    </div>
+</form>

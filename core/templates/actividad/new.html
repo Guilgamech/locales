@@ -1,0 +1,71 @@
+{% extends 'new_base.html' %}
+
+{% block header %} Actividad{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span><a href=""> Actividad </a></span></li>
+    <li><span> Insertar una actividad </span></li>
+{% endblock %}
+
+{% block panel %}
+    Insertar nueva actividad
+{% endblock %}
+
+{% block elementos %}
+    {% include 'actividad/_form.html' %}
+{% endblock %}
+{% block javascript %}
+    $('#guardar').show();
+    $('#guardar_y_continuar').show();
+    $('#id_fechaInicio').replaceWith('<div class="input-group date" id="fechaInicio"><input type="text" id="id_fechaInicio" name="fechaInicio" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>');
+    $('#id_fechaFin').replaceWith('<div class="input-group date" id="fechaFin"><input type="text" id="id_fechaFin" name="fechaFin" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>');
+    $('#fechaInicio').datetimepicker({
+        useCurrent: false,
+        viewMode: 'days',
+        format: 'Y-M-D',
+        daysOfWeekDisabled: [0, 6],
+        locale: 'es',
+        minDate: 'moment'
+    });
+    $('#fechaFin').datetimepicker({
+        useCurrent: false,
+        viewMode: 'days',
+        format: 'Y-M-D',
+        daysOfWeekDisabled: [0, 6],
+        locale: 'es'
+    });
+    $("#fechaInicio").on("dp.change", function (e) {
+        $('#fechaFin').data("DateTimePicker").minDate(e.date);
+        $('#id_fechaFin').val($('#id_fechaInicio').val());
+    });
+
+    $('#id_horaInicio').replaceWith('<div class="input-group date" id="horaInicio"><input type="text" id="id_horaInicio" name="horaInicio" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span></div>');
+    $('#id_horaFin').replaceWith('<div class="input-group date" id="horaFin"><input type="text" id="id_horaFin" name="horaFin" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span></div>');
+    $('#horaInicio').datetimepicker({
+        format: 'HH:mm'
+    });
+    $('#horaFin').datetimepicker({
+        format: 'HH:mm'
+    });
+
+    $("#horaInicio").on("dp.change", function (e) {
+        let horaInicio = $("#id_horaInicio").val();
+        let horaFin = addHora(horaInicio,1);
+       $("#id_horaFin").val(horaFin);
+    });
+
+    $("#id_horaFin").on("blur", function () {
+
+        var horaInicio = $("#id_horaInicio").val();
+        var horaFin = $("#id_horaFin").val();
+        if (horaFin < horaInicio) {
+            new PNotify({
+                title: 'Error',
+                text: 'La hora final tiene que ser mayor que la inicial.',
+                type: 'error',
+                shadow: true
+            });
+            $("#id_horaFin").val(horaInicio);
+        }
+    });
+{% endblock %}

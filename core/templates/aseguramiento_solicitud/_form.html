@@ -1,0 +1,56 @@
+{% load widget_tweaks %}
+<form method="post" action="">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                {{ form.tipoAseguramiento.label_tag }}
+                {{ form.tipoAseguramiento }}
+                {{ form.tipoAseguramiento.errors }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                {{ form.aseguramiento.label_tag }}
+                {{ form.aseguramiento }}
+                {{ form.aseguramiento.errors }}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ form.descripcion.label_tag }}
+                {{ form.descripcion }}
+                {{ form.descripcion.errors }}
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ form.observacion.label_tag }}
+                {{ form.observacion }}
+                {{ form.observacion.errors }}
+            </div>
+        </div>
+    </div>
+    <div class="row pull-right">
+        <button id="actualizar" class="mt-xs mr-xs btn btn-primary" style="display: none"><i class="fa fa-refresh"></i>
+            Actualizar
+        </button>
+        <button id="guardar" type="submit" class="mt-xs mr-xs btn btn-primary"
+                onmouseover="accion('{% url 'aseguramiento_solicitud_new' solicitud.id %}')" style="display: none"><i
+                class="fa fa-save"></i> Guardar
+        </button>
+        <button id="guardar_y_continuar" type="submit" class="mt-xs mr-xs btn btn-primary"
+                onmouseover="accion('{% url 'aseguramiento_solicitud_create_and_new' solicitud.id %}')"
+                style="display: none"><i
+                class="fa fa-check-square-o"></i>Guardar y continuar
+        </button>
+        <a class="mt-xs mr-xs btn btn-primary" href="{% url 'solicitud_edit' solicitud.id %}"><i
+                class="fa fa-list-ol"></i> Listar</a>
+        <a id="borrar" class="mt-xs mr-xs modal-basic btn btn-danger" href="#modalHeaderColorWarning"
+           style="display: none"><i class="fa fa-trash-o"></i> Borrar</a>
+    </div>
+</form>
+
+

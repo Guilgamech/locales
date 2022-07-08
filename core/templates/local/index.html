@@ -1,0 +1,38 @@
+{% extends 'index_base.html' %}
+
+{% block title %}Listado de los locales{% endblock %}
+
+{% block header %} Local{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span> Local </span></li>
+{% endblock %}
+
+{% block thead %}
+    <tr>
+        <th>Nombre</th>
+        <th>Ubicación</th>
+        <th>Capacidad</th>
+        <th>Teléfono</th>
+        <th>Acciones</th>
+    </tr>
+{% endblock %}
+
+{% block tbody %}
+
+        {% for local in locals %}
+            <tr>
+                <td>{{ local.nombre }}</td>
+                <td>{{ local.ubicacion }}</td>
+                <td>{{ local.capacidad }}</td>
+                <td>{{ local.telefono }} </td>
+                <td>
+                    <a href="{% url 'solicitud_nueva' local.id %}" class="mb-xs mt-xs mr-xs btn btn-xs btn-primary" data-toggle="tooltip" data-placement="top" title="Crear una reservación en este local"><i class="fa fa-pencil-square-o"></i> Reservar</a>
+                </td>
+            </tr>
+        {% endfor %}
+{% endblock %}
+{% block addToTable %}{% endblock %}
+{% block eliminar %}{% endblock %}
+
+

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+ {% block body %}
+
+<!-- start: page -->
+    <section class="panel-primary">
+        <header class="panel-heading">
+           <h2 class="panel-title">{% block title %}Default{% endblock %}</h2>
+        </header>
+
+        <form action="{% block eliminar %}{% endblock %}" method="post" id="formEliminar" name="formEliminar">
+        {% csrf_token %}
+        <div id="modalHeaderColorWarning" class="modal-block modal-header-color modal-block-warning mfp-hide">
+            <section class="panel">
+                <header class="panel-heading">
+                    <h2 class="panel-title">Alerta!</h2>
+                </header>
+                <div class="panel-body">
+                    <div class="modal-wrapper">
+                        <div class="modal-icon">
+                            <i class="fa fa-warning"></i>
+                        </div>
+                        <div class="modal-text">
+                            <h4>Alerta</h4>
+                           {% block mensaje %}
+                            <p>¿Esta seguro que desea eliminar estos datos?</p>
+                           {% endblock %}
+                        </div>
+                    </div>
+                </div>
+                <footer class="panel-footer">
+                    <div class="row">
+                        <div class="col-md-12 text-right">
+                            <button type="submit" class="btn btn-warning modal-confirm">Confirmar</button>
+                            <button class="btn btn-default modal-dismiss">Cancelar</button>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-md">
+                        {% block addToTable %}<a href="{% block nuevo %}{% endblock %}" id="addToTable" class="btn btn-primary"><i class="fa fa-plus"></i> Nuevo</a>{% endblock %}
+                        <a id="borrar" class="mb-xs mt-xs mr-xs modal-basic btn btn-danger" href="#modalHeaderColorWarning" style="display: none"><i class="fa fa-trash-o"></i> Borrar</a>
+                        {% block botones %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+            <table class="table table-bordered table-striped mb-none" id="datatable-default">
+                <thead>
+                {% block thead %}{% endblock %}
+                </thead>
+                <tbody>
+                {% block tbody %}{% endblock %}
+                </tbody>
+            </table>
+        </div>
+        </form>
+    </section>
+<!-- end: page -->
+{% endblock %}
+{% block functionjs %}
+     function seleccionarTodo() {
+    if ($("#selectall").prop('checked')) {
+    $(".select").each(function () {
+    this.checked = true;
+    });
+    $('#borrar').show();
+    } else {
+    $(".select").each(function () {
+    this.checked = false;
+    });
+    $('#borrar').hide();
+    }
+    }
+    function activarDesactivar() {
+    if($('.select').is(':checked')){
+
+    $('#borrar').show();
+    }else{
+    $('#borrar').hide();
+    }
+    }
+
+{% endblock %}

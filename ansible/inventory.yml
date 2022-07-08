@@ -1,0 +1,12 @@
+all:
+  children:
+    ungrouped:
+      hosts:
+        web:
+          ansible_host: $ANSIBLE_HOST
+          ansible_python_interpreter: $ANSIBLE_PYTHON_INTERPRETER
+          ansible_user: $ANSIBLE_USER
+          project_repository: $PROJECT_REPOSITORY
+          project_version: $PROJECT_VERSION
+          app_wsgi_path: $APP_WSGI_PATH
+          server_name: $SERVER_NAME

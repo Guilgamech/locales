@@ -1,0 +1,126 @@
+---
+- hosts: web
+  become: true
+
+  vars:
+    app_dir: /usr/src/app
+    virtualenv_dir: /usr/src/app/venv
+
+  tasks:
+    - name: Configurar APT
+      copy:
+        src: sources.list
+        dest: /etc/apt/sources.list
+
+    - name: Instalar paquetes
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items: [git,python3,python3-pip,virtualenv,apache2,libapache2-mod-wsgi-py3,wkhtmltopdf,xvfb,libpq-dev]
+
+    - name: Configurar PIP (1)
+      file:
+        path: /root/.config/pip
+        state: directory
+
+    - name: Configurar PIP (2)
+      copy:
+        src: pip.conf
+        dest: /root/.config/pip/pip.conf
+
+    - name: Descargar código fuente
+      git:
+        repo: "{{ project_repository }}"
+        dest: "{{ app_dir }}"
+        version: "{{ project_version }}"
+
+    - name: Instalar dependencias
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        extra_args: '-i http://nexus.reduc.edu.cu/repository/pypi.python.org-proxy/simple'
+        virtualenv: "{{ virtualenv_dir }}"
+        virtualenv_python: python3
+
+    - name: Configurar Django
+      copy:
+        src: django_env
+        dest: "{{ app_dir }}/.env"
+
+    - name: Aplicar migraciones de BD
+      django_manage:
+        command: migrate
+        app_path: "{{ app_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+    - name: Crear usuario administrador predeterminado
+      django_manage:
+        command: createdefaultsuperuser
+        app_path: "{{ app_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+    - name: Agrupar statics
+      django_manage:
+        command: collectstatic --noinput --clear
+        app_path: "{{ app_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+    - name: Cambiar owner de app_dir a www-data
+      file:
+        path: "{{ app_dir }}"
+        owner: www-data
+        group: www-data
+        recurse: yes
+
+    - name: Cambiar ServerTokens de Apache a "Prod"
+      lineinfile:
+        dest: /etc/apache2/conf-available/security.conf
+        state: present
+        regexp: '^ServerTokens'
+        line: 'ServerTokens Prod'
+      notify: restart apache
+
+    - name: Cambiar ServerSignature de Apache a "Off"
+      lineinfile:
+        dest: /etc/apache2/conf-available/security.conf
+        state: present
+        regexp: '^ServerSignature'
+        line: 'ServerSignature Off'
+      notify: restart apache
+
+    - name: Desactivar VHost predeterminado de Apache
+      command: a2dissite 000-default
+      notify: restart apache
+
+    - name: Activar módulos de Apache
+      apache2_module:
+        name: "{{ item }}"
+        state: present
+      notify: restart apache
+      loop:
+        - wsgi
+        - rewrite
+        - ssl
+
+    - name: Crear VHost de la aplicación
+      template:
+        src: app.conf.j2
+        dest: /etc/apache2/sites-available/app.conf
+        group: www-data
+        owner: www-data
+        mode: 0644
+      notify:
+        - restart apache
+
+    - name: Activar VHost de la aplicación
+      command: a2ensite app
+      notify: restart apache
+
+  handlers:
+    - name: Reiniciar Apache
+      service:
+        name: apache2
+        state: restarted
+      listen: "restart apache"
+      register: restart_apache
+      until: restart_apache is not failed
+      retries: 5

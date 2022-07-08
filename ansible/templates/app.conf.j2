@@ -1,0 +1,35 @@
+<VirtualHost *:80>
+
+    ServerName {{ server_name }}
+
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
+<IfModule mod_ssl.c>
+    <VirtualHost *:443>
+
+        ServerName {{ server_name }}
+
+        Alias /media/ {{ app_dir }}/media/
+        <Directory {{ app_dir }}/media>
+            Require all granted
+        </Directory>
+        
+        <Directory {{ app_dir }}>
+            <Files wsgi.py>
+                Require all granted
+            </Files>
+        </Directory>
+
+        WSGIDaemonProcess app python-path={{ app_dir }} python-home={{ virtualenv_dir }}
+        WSGIProcessGroup app
+        WSGIScriptAlias / {{ app_dir }}{{ app_wsgi_path }}
+        WSGIPassAuthorization On
+
+        SSLEngine on
+        SSLCertificateFile /etc/apache2/ssl/reduc.edu.cu-fullchain.pem
+        SSLCertificateKeyFile /etc/apache2/ssl/reduc.edu.cu-key.pem
+    </VirtualHost>
+</IfModule>

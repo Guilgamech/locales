@@ -1,0 +1,118 @@
+{% extends 'index_base.html' %}
+
+{% block title %}Listado de las solicitudes{% endblock %}
+
+{% block header %} solicitud{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span> solicitud </span></li>
+{% endblock %}
+
+{% block thead %}
+    <tr>
+        {% if solicituds is not null %}
+            <th><input type="checkbox" id="selectall" name="selectall" onclick="seleccionarTodo();"></th>
+        {% endif %}
+        <th>Nombre</th>
+        <th>Fecha de inicio</th>
+        <th>Hora de inicio</th>
+        <th>Fecha fin</th>
+        <th>Hora fin</th>
+        <th>Todo el día</th>
+        <th>Cantidad participantes</th>
+        <th>Estado</th>
+        <th>Solicitante</th>
+        <th>Tipo de usuario</th>
+        <th>Local</th>
+        <th>Tipo actividad</th>
+        <th>Acciones</th>
+    </tr>
+{% endblock %}
+
+{% block tbody %}
+
+    {% for solicitud in solicituds %}
+        <tr>
+            <td><input type="checkbox" id="select" class="select" name="select[]" value="{{ solicitud.id }}"
+                       onclick="activarDesactivar();"></td>
+            <td>{{ solicitud.nombre }}</td>
+            <td>{{ solicitud.fechaInicio|date:'d/m/Y' }}</td>
+            <td>{{ solicitud.horaInicio }}</td>
+            <td>{{ solicitud.fechaFin|date:'d/m/Y' }}</td>
+            <td>{{ solicitud.horaFin }}</td>
+            <td>{{ solicitud.diaCompleto|yesno:"Sí,No" }} </td>
+            <td>{{ solicitud.cantidadParticipante }}</td>
+            <td>{{ solicitud.estado }}</td>
+            <td>{{ solicitud.solicitante }}</td>
+            <td>{{ solicitud.solicitante.tipoUsuario }}</td>
+            <td>{{ solicitud.local }}</td>
+            <td>{{ solicitud.tipoActividad }}</td>
+            <td>
+                <a href="{% url 'solicitud_show' solicitud.id %} "><i class="fa fa-info-circle"></i></a>
+                <a href="{% url 'solicitud_edit' solicitud.id %}"><i class="fa fa-pencil-square"></i></a>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block nuevo %}{% url 'solicitud_new' %}{% endblock %}
+{% block eliminar %}{% url 'solicitud_delete_all' %}{% endblock %}
+{% block botones %}
+    <a id="aceptar" class="mb-xs mt-xs mr-xs modal-basic btn btn-success" href="#modalHeaderColorWarning"
+       style="display: none"><i class="fa fa-check"></i> Aceptar</a>
+    <a id="denegar" class="mb-xs mt-xs mr-xs modal-basic btn btn-danger" href="#modalHeaderColorWarning"
+       style="display: none"><i class="fa fa-times"></i> Denegar</a>
+{% endblock %}
+{% block functionjs %}
+    function seleccionarTodo() {
+    if ($("#selectall").prop('checked')) {
+    $(".select").each(function () {
+    this.checked = true;
+    });
+    $('#borrar').show();
+    } else {
+    $(".select").each(function () {
+    this.checked = false;
+    });
+    $('#borrar').hide();
+    }
+    }
+    function activarDesactivar() {
+    if($('.select').is(':checked')){
+
+    $('#borrar').show();
+    $('#aceptar').show();
+    $('#denegar').show();
+    }else{
+    $('#borrar').hide();
+    $('#aceptar').hide();
+    $('#denegar').hide();
+    }
+    }
+
+{% endblock %}
+{% block mensaje %}
+    <p id="mEliminar" style="display: none">¿Esta seguro que desea eliminar estos datos?</p>
+    <p id="mAceptar" style="display: none">¿Esta seguro que desea aceptar estos datos?</p>
+    <p id="mDenegar" style="display: none">¿Esta seguro que desea denegar estos datos?</p>
+{% endblock %}
+{% block javascript %}
+    $('#borrar').on("click", function (e) {
+    $('#formEliminar').attr('action', '{% url 'solicitud_delete_all' %}');
+    $('#mEliminar').show();
+    $('#mAceptar').hide();
+    $('#mDenegar').hide();
+    });
+    $('#aceptar').on("click", function (e) {
+    $('#formEliminar').attr('action', '{% url 'solicitud_aceptar_all' %}');
+    $('#mEliminar').hide();
+    $('#mAceptar').show();
+    $('#mDenegar').hide();
+    });
+    $('#denegar').on("click", function (e) {
+    $('#formEliminar').attr('action', '{% url 'solicitud_denegar_all' %}');
+    $('#mEliminar').hide();
+    $('#mAceptar').hide();
+    $('#mDenegar').show();
+    });
+{% endblock %}
+

@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+    <section class="panel">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <label>Seleccione el local para filtar</label>
+                     <select class="form-control" id="selector">
+                            <option value="all">Todos</option>
+                     </select>
+                    <div id="calendar"></div>
+                    <div class="modal fade" id="modal-event" tabindex="-1" role="dialog"
+                         aria-labelledby="modal-eventLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                     <h4 class="modal-title" id="event-title"></h4>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div id="estado"></div>
+                                    <div id="cantidadParticipante"></div>
+                                    <div id="solicitante"></div>
+                                    <div id="tipoUsuario"></div>
+                                    <div id="local"></div>
+                                    <div id="tipoActividad"></div>
+                                    <div id="descripcion"></div>
+                                    <div id="observacion"></div>
+                                </div>
+                                <div class="modal-footer">
+
+                                                <button id="denegar" type="button" class="btn btn-danger" data-dismiss="modal"
+                                                        onclick="denegarAceptar(3)" style="display: none"><i class="fa fa-times"></i> Denegar
+                                                </button>
+                                                <button id="aceptar" type="button" class="btn btn-success" data-dismiss="modal"
+                                                        onclick="denegarAceptar(2)" style="display: none"><i class="fa fa-check"></i> Aceptar
+                                                </button>
+
+                                    <button type="button" class="btn btn-info" data-dismiss="modal"><i class="fa fa-reply"></i> Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block function %}
+     {% for group in request.user.groups.all %}
+           if ('{{ group }}' == 'responsable_local'){
+                es_responsable = true;
+        }
+    {% endfor %}
+     {% for local in locales %}
+        var newOption = new Option('{{ local.nombre }}', '{{ local.nombre }}', false, false);
+        $('#selector').append(newOption);
+     {% endfor %}
+	var initCalendar = function() {
+		var $calendar = $('#calendar')
+        var date = new Date();
+		var d = date.getDate();
+		var m = date.getMonth();
+		var y = date.getFullYear();
+		$calendar.fullCalendar({
+			header: {
+				left: 'title',
+				right: 'prev,today,next,month,agendaWeek,agendaDay,listWeek'
+			},
+            businessHours: {
+            start: '08:00', // hora inicial
+            end: '17:00', // hora final
+            dow: [ 1, 2, 3, 4, 5 ] // dias de semana, 0=Domingo
+            },
+            timeZone:'America/Havana',
+            locale:'es',
+            slotLabelFormat:'hh (:mm)a',
+			timeFormat: 'hh:mm a',
+
+			themeButtonIcons: {
+				prev: 'fa fa-caret-left',
+				next: 'fa fa-caret-right',
+			},
+
+			editable: false,
+			droppable: false,
+			events: {
+                url: '{% url 'calendario' %}',
+                error: function(e) {
+                   new PNotify({
+                    text: 'No hay datos para colocar en el calendario',
+                    type: 'error',
+                    shadow: true
+                });
+                 }
+            },
+            eventRender: function(event, element, view){
+              return ['all', event.local].indexOf($('#selector').val()) >= 0
+            },
+            eventClick: function (calEvent, jsEvent, view) {
+            $('#event-title').text(calEvent.title);
+            if(calEvent.esSolicitud){
+              $('#estado').show();
+              $('#cantidadParticipante').show();
+              $('#solicitante').show();
+              $('#observacion').show();
+              $('#tipoUsuario').show();
+              $('#estado').text('Estado: '+calEvent.estado);
+              $('#cantidadParticipante').text('Cantidad de participantes: '+calEvent.cantidadParticipante);
+              $('#solicitante').text('Solicitante: '+calEvent.solicitante);
+              $('#tipoUsuario').text('Tipo de usuario: '+calEvent.tipoUsuario);
+              $('#observacion').text('Observación: '+calEvent.observacion);
+                if(es_responsable && calEvent.estado_id == 1){
+                $('#denegar').show();
+                $('#aceptar').show();
+                 }else{
+                $('#denegar').hide();
+                $('#aceptar').hide();
+                }
+            }else{
+                $('#denegar').hide();
+                $('#aceptar').hide();
+
+                $('#estado').hide();
+                $('#cantidadParticipante').hide();
+                $('#solicitante').hide();
+                $('#observacion').hide();
+                $('#tipoUsuario').hide();
+            }
+
+            $('#local').text('Local: '+calEvent.local);
+            $('#tipoActividad').text('Tipo de actividad: '+calEvent.tipoActividad);
+            $('#descripcion').text('Descripcion: '+calEvent.descripcion);
+
+            id=calEvent.id;
+
+            $('#modal-event').modal();
+            },
+            loading: function(bool) {
+                if(bool){
+                new PNotify({
+                    title: 'Espere...',
+                    text: 'Cargando los datos al calendario',
+                    type: 'info',
+                    shadow: true
+                });
+                }
+            }
+		});
+
+        $('#selector').on('change',function(){
+        $('#calendar').fullCalendar('rerenderEvents');
+        })
+		// FIX INPUTS TO BOOTSTRAP VERSIONS
+		var $calendarButtons = $calendar.find('.fc-header-right > span');
+		$calendarButtons
+			.filter('.fc-button-prev, .fc-button-today, .fc-button-next')
+				.wrapAll('<div class="btn-group mt-sm mr-md mb-sm ml-sm"></div>')
+				.parent()
+				.after('<br class="hidden"/>');
+
+		$calendarButtons
+			.not('.fc-button-prev, .fc-button-today, .fc-button-next')
+				.wrapAll('<div class="btn-group mb-sm mt-sm"></div>');
+
+		$calendarButtons
+			.attr({ 'class': 'btn btn-sm btn-default' });
+	};
+
+	$(function() {
+		initCalendar()
+	});
+{% endblock %}
+{% block functionjs %}
+function denegarAceptar(estado){
+        $.ajax({
+            url: '{% url 'denegar_aceptar_solicitud' %}',
+            data: {
+                'solicitud_id': id,
+                'estado_id': estado
+            },
+            dataType: 'json',
+            success: function (response) {
+                new PNotify({
+                    title: 'Cambiando',
+                    text: 'Se cambio el estado de la solicitud',
+                    type: 'info',
+                    shadow: true
+                })
+                 $('#calendar').fullCalendar('refetchEvents');
+            },
+            error: function (response) {
+                if(response.responseJSON==400){
+                    new PNotify({
+                        title: 'Error',
+                        text: 'No se ha podido cambiar el estado de la solicitud.',
+                        type: 'error',
+                        shadow: true
+                    });
+                }else{
+                new PNotify({
+                    title: 'Cambiando',
+                    text: 'Se cambio el estado de la solicitud pero no se pudo enviar el correo de notificación.',
+                    type: 'info',
+                    shadow: true
+                });
+                $('#calendar').fullCalendar('refetchEvents');
+                }
+            }
+
+        });
+    }
+{% endblock %}

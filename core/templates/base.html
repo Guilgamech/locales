@@ -1,0 +1,342 @@
+{% load static %}
+<!doctype html>
+<html class="fixed">
+<head>
+
+    <!-- Basic -->
+    <meta charset="UTF-8">
+
+    <title>SGRL | Universidad de Camagüey | {% block title %}{% endblock %}</title>
+    <meta name="keywords" content="HTML5 Admin Template"/>
+    <meta name="description" content="Porto Admin - Responsive HTML5 Template">
+    <meta name="author" content="okler.net">
+
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+    <!-- Web Fonts  -->
+    {#    <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800|Shadows+Into+Light"#}
+    {#          rel="stylesheet" type="text/css">#}
+
+    <!-- Vendor CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/bootstrap/css/bootstrap.css' %}"/>
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/font-awesome/css/font-awesome.css' %}"/>
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/magnific-popup/magnific-popup.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'frontend/octopus/assets/vendor/jquery-datatables-bs3/assets/css/datatables.css' %}"/>
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/select2/select2.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'frontend/octopus/assets/vendor/bootstrap-multiselect/bootstrap-multiselect.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'frontend/octopus/assets/vendor/bootstrap-timepicker/css/bootstrap-timepicker.css' %}"/>
+
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/fullcalendar/fullcalendar.css' %}"/>
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/fullcalendar/fullcalendar.print.css' %}"
+          media="print"/>
+
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/pnotify/pnotify.custom.css' %}"/>
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/vendor/fuelux/css/spinner.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'frontend/octopus/assets/vendor/bootstrap-tagsinput/bootstrap-tagsinput.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'frontend/octopus/assets/vendor/bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}"/>
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/stylesheets/theme.css' %}"/>
+
+    <!-- Skin CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/stylesheets/skins/default.css' %}"/>
+
+    <!-- Theme Custom CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/octopus/assets/stylesheets/theme-custom.css' %}">
+    {% block stylesheets %}{% endblock %}
+    <!-- Head Libs -->
+    <script src="{% static 'frontend/octopus/assets/vendor/modernizr/modernizr.js' %}"></script>
+
+</head>
+<body>
+<section class="body">
+
+    <!-- start: header -->
+    <header class="header">
+        <div class="logo-container">
+            <span class="logo">
+            <a href="{% url 'dashboard' %}">
+                <img src="{% static 'frontend/octopus/assets/images/logo.png' %}" height="35" alt="Porto Admin"/>
+            </a>Sistema para la Gestión de Solicitudes de los Locales
+                </span>
+            <div class="visible-xs toggle-sidebar-left" data-toggle-class="sidebar-left-opened" data-target="html"
+                 data-fire-event="sidebar-left-opened">
+                <i class="fa fa-bars" aria-label="Toggle sidebar"></i>
+            </div>
+        </div>
+
+        <!-- start: search & user box -->
+        <div class="header-right">
+
+            <span class="separator"></span>
+
+            <div id="userbox" class="userbox">
+                <a href="#" data-toggle="dropdown">
+                    <figure class="profile-picture">
+                        <img src="{% static 'frontend/octopus/assets/images/!logged-user.jpg' %}" alt="Joseph Doe"
+                             class="img-circle"
+                             data-lock-picture="{% static 'frontend/octopus/assets/images/!logged-user.jpg' %}"/>
+                    </figure>
+                    <div class="profile-info">
+                        <span class="name">{{ user.get_username }}</span>
+                        <span class="role"></span>
+                    </div>
+
+                    <i class="fa custom-caret"></i>
+                </a>
+
+                <div class="dropdown-menu">
+                    <ul class="list-unstyled">
+                        {% for group in request.user.groups.all %}
+                            <li class="divider"></li>
+                            {% if group.name == 'administradores' %}
+                                <li>
+                                    <a role="menuitem" tabindex="-1" href="/admin"><i class="fa fa-cogs"></i>
+                                        Administración</a>
+                                </li>
+                                <li class="divider"></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li>
+                            <a role="menuitem" tabindex="-1" href="{% url 'perfil' %}"><i class="fa fa-user"></i>
+                                Perfil</a>
+                        </li>
+                        <li>
+                            <a role="menuitem" tabindex="-1" href="{% url 'logout' %}?next={% url 'login' %}"><i
+                                    class="fa fa-power-off"></i>
+                                Salir</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <!-- end: search & user box -->
+    </header>
+    <!-- end: header -->
+
+    <div class="inner-wrapper">
+        <!-- start: sidebar -->
+        <aside id="sidebar-left" class="sidebar-left">
+
+            <div class="sidebar-header">
+
+                <div class="sidebar-toggle hidden-xs" data-toggle-class="sidebar-left-collapsed" data-target="html"
+                     data-fire-event="sidebar-left-toggle">
+                    <i class="fa fa-bars" aria-label="Toggle sidebar"></i>
+                </div>
+            </div>
+
+            <div class="nano">
+                <div class="nano-content">
+                    <nav id="menu" class="nav-main" role="navigation">
+                        <ul class="nav nav-main">
+                            <li>
+                                <a href="{% url 'dashboard' %}">
+                                    <i class="fa fa-home" aria-hidden="true"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'solicitud_index' %}">
+                                    <i class="fa fa-files-o" aria-hidden="true"></i>
+                                    <span>Solicitudes</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'local_index' %}">
+                                    <i class="fa fa-institution" aria-hidden="true"></i>
+                                    <span>Locales</span>
+                                </a>
+                            </li>
+                            {% for group in request.user.groups.all %}
+                                {% if group.name == 'administradores' or group.name == 'responsable_local' %}
+                                    <li>
+                                        <a href="{% url 'actividad_index' %}">
+                                            <i class="fa fa-list-alt" aria-hidden="true"></i>
+                                            <span>Acividades docentes</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            <li>
+                                <a href="{% static '/frontend/ayuda/Ayuda.pdf' %}">
+                                    <i class="fa fa-support" aria-hidden="true"></i>
+                                    <span>Ayuda</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                </div>
+
+            </div>
+
+        </aside>
+        <!-- end: sidebar -->
+
+        <section role="main" class="content-body">
+            <header class="page-header">
+                <h2>{% block header %}{% endblock %}</h2>
+
+                <div class="right-wrapper pull-right">
+                    <ol class="breadcrumbs">
+                        <li>
+                            <a href="{% url 'dashboard' %}">
+                                <i class="fa fa-home"></i>
+                            </a>
+                        </li>
+                        {% block breadcrumbs %}{% endblock %}
+                        &nbsp;
+                    </ol>
+                </div>
+
+            </header>
+
+            <!-- start: page -->
+            {% block body %}{% endblock %}
+            <!-- end: page -->
+        </section>
+    </div>
+
+</section>
+
+<!-- Vendor -->
+<script src="{% static 'frontend/octopus/assets/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-browser-mobile/jquery.browser.mobile.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/bootstrap/js/bootstrap.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/nanoscroller/nanoscroller.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/magnific-popup/magnific-popup.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-placeholder/jquery.placeholder.js' %}"></script>
+
+<!-- Specific Page Vendor -->
+<script src="">{% static 'frontend/octopus/assets/vendor/select2/select2.min.js' %}</script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-datatables/media/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-datatables/media/js/lang-es.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-datatables-bs3/assets/js/datatables.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/select2/select2.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/bootstrap-multiselect/bootstrap-multiselect.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/bootstrap-timepicker/js/bootstrap-timepicker.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/fuelux/js/spinner.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/ios7-switch/ios7-switch.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/pnotify/pnotify.custom.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-ui-touch-punch/jquery.ui.touch-punch.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/fullcalendar/lib/moment.min.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/fullcalendar/fullcalendar.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/fullcalendar/lang/es.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/jquery-maskedinput/jquery.maskedinput.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/bootstrap-tagsinput/bootstrap-tagsinput.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/moment/min/moment-with-locales.js' %}"></script>
+<script src="{% static 'frontend/octopus/assets/vendor/bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}"></script>
+<!-- Theme Base, Components and Settings -->
+<script src="{% static 'frontend/octopus/assets/javascripts/theme.js' %}"></script>
+
+<!-- Theme Custom -->
+<script src="{% static 'frontend/octopus/assets/javascripts/theme.custom.js' %}"></script>
+
+<!-- Theme Initialization Files -->
+<script src="{% static 'frontend/octopus/assets/javascripts/theme.init.js' %}"></script>
+{% block javascripts %}{% endblock %}
+
+<script>
+    function path(dir) {
+        window.location.href = dir;
+    }
+
+    function accion(dir) {
+        $('#form').attr('action', dir);
+    }
+
+    function addHora(horaInicio, hora) {
+        return moment(horaInicio, 'HH:mm').add(hora, 'hours').format('HH:mm');
+    }
+
+    var flag = true;
+    var id = 0;
+    var es_responsable = false;
+    (function ($) {
+
+        'use strict';
+
+        var datatableInit = function () {
+            $('#datatable-default').dataTable();
+            $('#datatable-default').each(function () {
+                var datatable = $(this);
+                var search_input = datatable.closest('.dataTables_wrapper').find('div[id$=_filter] input');
+                search_input.attr('placeholder', 'Buscar');
+                search_input.addClass('form-control input-sm');
+                var length_sel = datatable.closest('.dataTables_wrapper').find('div[id$=_length] select');
+                length_sel.addClass('form-control input-sm');
+            });
+        };
+
+        $(function () {
+            datatableInit();
+
+        });
+        /*
+            Basic
+            */
+        $('.modal-basic').magnificPopup({
+            type: 'inline',
+            preloader: false,
+            modal: true
+        });
+        /*
+	    Modal Dismiss
+	    */
+        $(document).on('click', '.modal-dismiss', function (e) {
+            e.preventDefault();
+            $.magnificPopup.close();
+        });
+
+        /*
+	Modal Confirm
+	*/
+        $(document).on('click', '.modal-confirm', function (e) {
+            e.preventDefault();
+            $.magnificPopup.close();
+            document.formEliminar.submit();
+
+        });
+
+        {% block function %}{% endblock %}
+    }).apply(this, [jQuery]);
+
+    {% block functionjs %}{% endblock %}
+
+    $(document).ready(function () {
+        $('label').addClass('control-label');
+        $('input').addClass('form-control');
+        $('textarea').addClass('form-control');
+        $('select').addClass('form-control');
+        $("select").select2({
+            placeholder: "Seleccione",
+            width: "100%",
+            language: "es",
+            allowClear: true
+        });
+        {% if messages %}
+            {% for message in messages %}
+
+                new PNotify({
+                    title: 'Atención',
+                    text: '{{ message }}',
+                    type: '{{ message.tags }}',
+                    shadow: true
+                });
+            {% endfor %}
+        {% endif %}
+        {% block javascript %}{% endblock %}
+    });
+
+</script>
+</body>
+</html>

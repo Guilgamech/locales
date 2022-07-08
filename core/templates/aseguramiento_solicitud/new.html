@@ -1,0 +1,49 @@
+{% extends 'new_base.html' %}
+
+{% block header %} Aseguramiento de la solicitud: {{ solicitud }}{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span><a href="{% url 'solicitud_edit' solicitud.id %}"> Solicitud </a></span></li>
+    <li><span> Insertar un aseguramiento</span></li>
+{% endblock %}
+
+{% block panel %}
+    Insertar nuevo aseguramiento de la solicitud: {{ solicitud }}
+{% endblock %}
+
+{% block elementos %}
+    {% include 'aseguramiento_solicitud/_form.html' %}
+{% endblock %}
+{% block javascript %}
+    $('#id_aseguramiento').attr('disabled', 'disabled');
+    $('#guardar').show();
+    $('#guardar_y_continuar').show();
+    $('#id_tipoAseguramiento').on("change", function (e) {
+    tipoAseguramiento_id = $('#id_tipoAseguramiento').val();
+    if ($('#id_tipoAseguramiento').val() >= 1) {
+            $.ajax({
+                url: '{% url 'aseguramiento_find' %}',
+                data: {
+                    'tipoAseguramiento_id': tipoAseguramiento_id
+                },
+                dataType: 'json',
+                success: function (response) {
+                    $("#id_aseguramiento").empty();
+                    var newOption = new Option('Seleccione', '', false, false);
+                    $('#id_aseguramiento').append(newOption);
+                    $.each(response, function (key, registro) {
+                        var newOption = new Option(registro.nombre, registro.id, false, false);
+                        $('#id_aseguramiento').append(newOption);
+                    });
+                    $('#id_aseguramiento').removeAttr('disabled');
+                },
+                error: function (response) {
+
+                }
+
+            });
+        } else {
+            $('#id_aseguramiento').attr('disabled', 'disabled');
+        }
+    });
+{% endblock %}

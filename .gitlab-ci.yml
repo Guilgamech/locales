@@ -1,0 +1,200 @@
+stages:
+  - build
+  - test
+  - review
+  - staging
+  - production
+  - cleanup
+
+.build: &build
+  image: docker:latest
+  stage: build
+  before_script:
+    - docker info
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --pull --build-arg PIP_INDEX_URL=$PIP_INDEX_URL --build-arg PIP_TRUSTED_HOST=$PIP_TRUSTED_HOST --build-arg PIP_TIMEOUT=$PIP_TIMEOUT -t "$APP_IMAGE" .
+    - docker push "$APP_IMAGE"
+
+build-review:
+  <<: *build
+  variables:
+    APP_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  except:
+    - master
+    - pre-production
+    - production
+
+build-staging:
+  <<: *build
+  variables:
+    APP_IMAGE: $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+
+.test: &test
+  image:
+    name: $APP_IMAGE
+    entrypoint: [""]
+  stage: test
+  services:
+    # Usar sevicio de Postgres
+    - name: postgres:12.0
+      alias: db
+  before_script:
+    # Instalar coverage
+    - pip install coverage
+    # Aplicar migrations
+    - python manage.py migrate
+  script:
+    # Ejecutar las pruebas (+coverage)
+    - coverage run --source='.' manage.py test
+    # Generar test coverage report
+    - coverage report
+  # Conservar cache de PIP entre builds
+  # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+  cache:
+    paths:
+    - ~/.cache/pip/
+  # Text coverage report (regex tested on https://rubular.com/)
+  coverage: '/^TOTAL.+?(\d+\%)$/'
+
+test-review:
+  <<: *test
+  variables:
+    POSTGRES_DB: db
+    POSTGRES_PASSWORD: password
+    POSTGRES_USER: user
+    DATABASE_URL: postgres://user:password@db/db
+    APP_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  except:
+    - master
+    - production
+
+test:
+  <<: *test
+  variables:
+    POSTGRES_DB: db
+    POSTGRES_PASSWORD: password
+    POSTGRES_USER: user
+    DATABASE_URL: postgres://user:password@db/db
+    APP_IMAGE: $CI_REGISTRY_IMAGE
+  only:
+    - master
+
+.deploy: &deploy
+  image:
+    name: greenled/portainer-stack-utils:0.1.2
+    entrypoint: [""]
+  script:
+    - envsubst < docker-compose.yml > tmp && cat tmp > docker-compose.yml
+    - psu -a deploy -n $APP_NAME -c docker-compose.yml -s $HTTPIE_VERIFY_SSL
+
+review:
+  <<: *deploy
+  stage: review
+  variables:
+    APP_NAME: $CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG
+    APP_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    APP_HOST: $CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG.$TRAEFIK_DOMAIN
+    DATABASE_URL: sqlite:///db.sqlite3
+    DEBUG: 'False'
+    HTTPIE_VERIFY_SSL: ${HTTPIE_VERIFY_SSL:-"yes"}
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG.$TRAEFIK_DOMAIN
+    on_stop: stop-review
+  only:
+    - branches
+  except:
+    - master
+    - production
+
+stop-review:
+  image:
+    name: greenled/portainer-stack-utils:0.1.2
+    entrypoint: [""]
+  stage: cleanup
+  script:
+    - psu -a undeploy -n $APP_NAME -s $HTTPIE_VERIFY_SSL
+  when: manual
+  variables:
+    GIT_STRATEGY: none
+    APP_NAME: $CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG
+    HTTPIE_VERIFY_SSL: ${HTTPIE_VERIFY_SSL:-"yes"}
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  only:
+    - branches
+  except:
+    - master
+    - production
+  # Solucion temporal para detener jobs
+  # Ver https://gitlab.com/gitlab-org/gitlab-ee/issues/6144#note_79066987
+  dependencies: []
+
+staging:
+  <<: *deploy
+  stage: staging
+  variables:
+    APP_NAME: $CI_PROJECT_NAME-staging
+    APP_IMAGE: $CI_REGISTRY_IMAGE:latest
+    APP_HOST: $CI_PROJECT_NAME-staging.$TRAEFIK_DOMAIN
+    DATABASE_URL: sqlite:///db.sqlite3
+    DEBUG: 'False'
+    HTTPIE_VERIFY_SSL: ${HTTPIE_VERIFY_SSL:-"yes"}
+  environment:
+    name: staging
+    url: http://$CI_PROJECT_NAME-staging.$TRAEFIK_DOMAIN
+  only:
+    - master
+
+.deploy-ansible: &deploy-ansible
+  image: williamyeh/ansible:debian9
+  before_script:
+    # Configurar APT
+    - echo "$APT_SOURCES" > /etc/apt/sources.list
+    # Actualizar APT
+    - apt-get update
+    # Instalar gettext
+    - apt-get install -y gettext
+    # Reemplazar variables en el inventario
+    - envsubst < $ANSIBLE_INVENTORY > tmp && cat tmp > $ANSIBLE_INVENTORY
+    # Reemplazar variables en fichero de configuración de Django
+    - envsubst < $DJANGO_ENV_FILE > tmp && cat tmp > $DJANGO_ENV_FILE
+    # Probar ssh-agent
+    - eval $(ssh-agent -s)
+    # Cargar llave ssh privada
+    - ssh-add <(echo "$ANSIBLE_SSH_PRIVATE_KEY")
+    # Crear directorio de ssh
+    - mkdir -p ~/.ssh
+    # Deshabilitar el chequeo de certificados SSH
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    # Ejecutar el playbook de despliegue
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK
+
+production:
+  <<: *deploy-ansible
+  stage: production
+  variables:
+    ANSIBLE_HOST: $PRODUCTION_ANSIBLE_HOST
+    ANSIBLE_USER: $PRODUCTION_ANSIBLE_USER
+    ANSIBLE_SSH_PRIVATE_KEY: $PRODUCTION_ANSIBLE_SSH_PRIVATE_KEY
+    ANSIBLE_PYTHON_INTERPRETER: $PRODUCTION_ANSIBLE_PYTHON_INTERPRETER
+    SERVER_NAME: $PRODUCTION_DOMAIN
+    PROJECT_REPOSITORY: $CI_REPOSITORY_URL
+    PROJECT_VERSION: production
+    ANSIBLE_INVENTORY: ansible/inventory.yml
+    DJANGO_ENV_FILE: ansible/files/django_env
+    ANSIBLE_PLAYBOOK: ansible/deploy.yml
+    DEBUG: 'False'
+    ALLOWED_HOSTS: $PRODUCTION_DOMAIN
+    DATABASE_URL: $PRODUCTION_DATABASE_URL
+    EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+  environment:
+    name: production
+    url: http://$PRODUCTION_DOMAIN
+  only:
+    - production

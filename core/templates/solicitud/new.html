@@ -1,0 +1,243 @@
+{% extends 'new_base.html' %}
+
+{% block header %} Solicitud{% endblock %}
+
+{% block breadcrumbs %}
+    <li><span><a href=""> Solicitud </a></span></li>
+    <li><span> Insertar una solicitud </span></li>
+{% endblock %}
+
+{% block panel %}
+    Insertar nueva solicitud
+{% endblock %}
+
+{% block elementos %}
+    {% include 'solicitud/_form.html' %}
+{% endblock %}
+{% block functionjs %}
+
+    var cont = 0;
+    var removeItemFromArray = (array, item) => {
+        return array.filter(e => e.id !== item);
+    };
+    function borrar(elemento) {
+        if (cont > 0) {
+            objetivo = 'div' + elemento;
+            fi = document.getElementById("contenedor"); // 1
+            fi.removeChild(document.getElementById(objetivo)); // 10
+        }
+    }
+    var rows = [];
+    var aseguramientos = [];
+    var tipoAseguramientos = [];
+    var t = null;
+    var isEqual = function (a, b) {
+        return a.aseguramiento === b.aseguramiento;
+    }
+    {% for aseguramiento in aseguramientos %}
+        aseguramientos.push({id:{{ aseguramiento.pk }}, nombre: '{{ aseguramiento }}'});
+    {% endfor %}
+     {% for tipoAseguramiento in tipoAseguramientos %}
+        tipoAseguramientos.push({id:{{ tipoAseguramiento.pk }}, nombre: '{{ tipoAseguramiento }}'});
+    {% endfor %}
+    function llenarTabla() {
+    var tipoAseguramiento_id = $('#id_tipoAseguramiento').val();
+    var aseguramiento_id = $('#id_aseguramiento').val();
+    var descripcion = $('#id_descripcionAseguramiento').val();
+    var observacion = $('#id_observacionAseguramiento').val();
+
+        var item = null;
+        if (tipoAseguramiento_id == '' && aseguramiento_id == '' && descripcion == '') {
+            new PNotify({
+                title: 'Error',
+                text: 'Los campos para adicionar un aseguramiento estan vacios.',
+                type: 'error',
+                shadow: true
+            });
+        }else{
+        var tipoAseguramiento='';
+        $.each(tipoAseguramientos, function (key, registro) {
+            if (registro.id == tipoAseguramiento_id) {
+               tipoAseguramiento=registro.nombre;
+            }
+        });
+        var aseguramiento='';
+        $.each(aseguramientos, function (key, registro) {
+            if (registro.id == aseguramiento_id) {
+              aseguramiento=registro.nombre;
+            }
+        });
+        item = {
+            id: cont + 1,
+            tipoAseguramiento: tipoAseguramiento,
+            aseguramiento: aseguramiento,
+            descripcion: descripcion,
+            observacion: observacion
+        };
+        var repetidos = 0;
+        for (var i = 0; i < rows.length; i++) {
+            if (isEqual(rows[i], item)) {
+                repetidos++;
+            }
+        }
+        if (repetidos == 0) {
+            rows.push(item);
+            t.row.add(['<div style="text-align: center"><input type="checkbox" name="id[]" value="' + item.id + '"></div>', item.tipoAseguramiento, item.aseguramiento, item.descripcion, item.observacion, item.id]).draw();
+            $('#id_tipoAaseguramiento').val(null).trigger('change');
+            $('#id_aseguramiento').val(null).trigger('change');
+            $('#id_descripcion').val('');
+            $('#id_observacion').val('');
+            cont++;
+            $('#elementos').val(rows.length);
+            $('#contenedor').append( // Poner adónde se va todo eso
+                '<div id=' + "div" + cont + '><input type="hidden" id=' + "id_aseguramiento_" + cont + ' name=' + "aseguramiento_" + cont + ' value=' + aseguramiento_id + '><input type="hidden" id=' + "id_descripcion_" + cont + ' name=' + "descripcion_" + cont + ' value=' + descripcion + '><input type="hidden" id=' + "id_observacion_" + cont + ' name=' + "observacion_" + cont + ' value=' + observacion + '></div>');
+        } else {
+            new PNotify({
+                title: 'Error',
+                text: 'El aseguramiento ya se había adicionado previamente.',
+                type: 'error',
+                shadow: true
+            });
+        }
+    }
+    }
+
+{% endblock %}
+{% block javascript %}
+    $('#id_aseguramiento').attr('disabled', 'disabled');
+    $('#id_aseguramiento').removeAttr('required');
+    $('#guardar').show();
+    $('#guardar_y_continuar').show();
+    $('#id_fechaInicio').replaceWith('<div class="input-group date" id="fechaInicio"><input type="text" id="id_fechaInicio" name="fechaInicio" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>');
+    $('#id_fechaFin').replaceWith('<div class="input-group date" id="fechaFin"><input type="text" id="id_fechaFin" name="fechaFin" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>');
+    $('#fechaInicio').datetimepicker({
+        useCurrent: false,
+        viewMode: 'days',
+        format: 'Y-M-D',
+        daysOfWeekDisabled: [0, 6],
+        locale: 'es',
+        minDate: 'moment'
+    });
+    $('#fechaFin').datetimepicker({
+        useCurrent: false,
+        viewMode: 'days',
+        format: 'Y-M-D',
+        daysOfWeekDisabled: [0, 6],
+        locale: 'es'
+    });
+    $("#fechaInicio").on("dp.change", function (e) {
+        $('#fechaFin').data("DateTimePicker").minDate(e.date);
+        $('#id_fechaFin').val($('#id_fechaInicio').val());
+    });
+    $('#id_diaCompleto').on("change", function (e) {
+        if ($('#id_diaCompleto').prop('checked')) {
+            $("#id_horaInicio").val("08:00");
+            $("#id_horaFin").val("17:00");
+            $("#id_horaInicio").attr('readonly', 'readonly');
+            $("#id_horaFin").attr('readonly', 'readonly');
+        } else {
+            $("#id_horaInicio").val();
+            $("#id_horaFin").val();
+            $("#id_horaInicio").removeAttr('readonly');
+            $("#id_horaFin").removeAttr('readonly');
+        }
+    });
+    $('#id_horaInicio').replaceWith('<div class="input-group date" id="horaInicio"><input type="text" id="id_horaInicio" name="horaInicio" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span></div>');
+    $('#id_horaFin').replaceWith('<div class="input-group date" id="horaFin"><input type="text" id="id_horaFin" name="horaFin" class="form-control"/><span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span></div>');
+    $('#horaInicio').datetimepicker({
+        format: 'HH:mm'
+    });
+    $('#horaFin').datetimepicker({
+        format: 'HH:mm'
+    });
+
+    $("#horaInicio").on("dp.change", function (e) {
+        let horaInicio = $("#id_horaInicio").val();
+        let horaFin = addHora(horaInicio,1);
+       $("#id_horaFin").val(horaFin);
+    });
+
+    $("#id_horaFin").on("blur", function () {
+
+        var horaInicio = $("#id_horaInicio").val();
+        var horaFin = $("#id_horaFin").val();
+        if (horaFin < horaInicio) {
+            new PNotify({
+                title: 'Error',
+                text: 'La hora final tiene que ser mayor que la inicial.',
+                type: 'error',
+                shadow: true
+            });
+            $("#id_horaFin").val(horaInicio);
+        }
+    });
+
+    t = $('#datatableAseguramiento').DataTable();
+    $('#datatableAseguramiento').each(function(){
+    var datatable = $(this);
+    var search_input = datatable.closest('.dataTables_wrapper').find('div[id$=_filter] input');
+    search_input.attr('placeholder', 'Buscar');
+    search_input.addClass('form-control input-sm');
+    var length_sel = datatable.closest('.dataTables_wrapper').find('div[id$=_length] select');
+    length_sel.addClass('form-control input-sm');
+    });
+
+    $('#datatableAseguramiento tbody').on('click', 'tr', function () {
+        $(this).toggleClass('selected');
+         var valores = t.rows('.selected').data();
+          if(valores.length==0){
+             $(':checkbox', this).prop('checked', false);
+             $('#deleteAseguramiento').attr('disabled', 'disabled');
+            }else{
+             $("#deleteAseguramiento").removeAttr('disabled');
+             $(':checkbox', this).prop('checked', true);
+            }
+    });
+    $('#deleteAseguramiento').click(function () {
+        var valores = t.rows('.selected').data();
+        $.each(valores, function (key, registro) {
+            borrar(registro[3]);
+            t.row('.selected').remove().draw(false);
+             rows=removeItemFromArray(rows,registro[3])
+        });
+    if(valores.length==0){
+     $('#deleteAseguramiento').attr('disabled', 'disabled');
+    }else{
+     $("#deleteAseguramiento").removeAttr('disabled');
+    }
+     $('#elementos').val(rows.length);
+        if (rows == 0) {
+            $('#deleteAseguramiento').attr('disabled', 'disabled');
+            cont=0;
+
+        }
+    });
+    $('#id_tipoAseguramiento').on("change", function (e) {
+    tipoAseguramiento_id = $('#id_tipoAseguramiento').val();
+    if ($('#id_tipoAseguramiento').val() >= 1) {
+            $.ajax({
+                url: '{% url 'aseguramiento_find' %}',
+                data: {
+                    'tipoAseguramiento_id': tipoAseguramiento_id
+                },
+                dataType: 'json',
+                success: function (response) {
+                    $("#id_aseguramiento").empty();
+                    var newOption = new Option('Seleccione', '', false, false);
+                    $('#id_aseguramiento').append(newOption);
+                    $.each(response, function (key, registro) {
+                        var newOption = new Option(registro.nombre, registro.id, false, false);
+                        $('#id_aseguramiento').append(newOption);
+                    });
+                    $('#id_aseguramiento').removeAttr('disabled');
+                },
+                error: function (response) {
+
+                }
+
+            });
+        } else {
+            $('#id_aseguramiento').attr('disabled', 'disabled');
+        }
+    });
+{% endblock %}
